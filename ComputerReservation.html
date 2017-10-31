@@ -81,10 +81,10 @@
                 
                 function main(event) {        
         
-                    fetch(`https://opendata.tamk.fi/r1/reservation/building?apiKey=${apiKey}`).then((response) => {return response.json()}).then(getBuildings)
+                    fetch(`https://opendata.tamk.fi/r1/reservation/building?apiKey=${apiKey}`).then((response) => {return response.json()}).then(getBuildings);
 
                         function getBuildings (jsonObject) {
-                            let buildingRegex = /^[A-ZÄÖÅ][\-]+/
+                            let buildingRegex = /^[A-ZÄÖÅ][\-]+/;
                             
                             for(let item in jsonObject.resources) {
                                 if(buildingRegex.test(jsonObject.resources[item].code)) {
@@ -93,12 +93,11 @@
                                         a        =  document.createElement("a"),
                                         building =  jsonObject.resources[item].id;
 
-                                    option.id =jsonObject.resources[item].id
+                                    option.id =jsonObject.resources[item].id;
                                     a.setAttribute('href',"#");
                                     a.innerHTML = jsonObject.resources[item].name;
                                     option.appendChild(a);
                                     x.appendChild(option);
-                                    
                                     getRooms(building);
                                 }
                             }
@@ -106,28 +105,27 @@
 
                         function getRooms(building) {
 
-                            fetch(`https://opendata.tamk.fi/r1/reservation/building/${building}?apiKey=${apiKey}`).then((response) => {return response.json()}).then(handleRooms)
+                            fetch(`https://opendata.tamk.fi/r1/reservation/building/${building}?apiKey=${apiKey}`).then((response) => {return response.json()}).then(handleRooms);
 
                             function handleRooms (jsonObject) {
                                 var liToAppend = document.getElementById(building),
-                                    ulNewList  = document.createElement("ul")
+                                    ulNewList  = document.createElement("ul");
                                 
-                                ulNewList.className = "subHeading"
-                                ulNewList.innerHTML="Room"
+                                ulNewList.className = "subHeading";
+                                ulNewList.innerHTML="Room";
                         
                                 for(let index in jsonObject.resources){
                                     var liNewListItem = document.createElement("li"),
                                         a             = document.createElement("a");
 
-                                    liNewListItem.id=jsonObject.resources[index].code
+                                    liNewListItem.id=jsonObject.resources[index].code;
                                     a.setAttribute('href',"#");
                                     a.innerHTML = jsonObject.resources[index].code;
                                     liNewListItem.appendChild(a);
-                                    ulNewList.appendChild(liNewListItem)
-                                    getFreeComputers(jsonObject.resources[index].code)    
+                                    ulNewList.appendChild(liNewListItem);
+                                    getFreeComputers(jsonObject.resources[index].code);    
                                 }
                                 liToAppend.appendChild(ulNewList);
-                                
                             }
 
                             function getFreeComputers(room) {
@@ -135,28 +133,28 @@
                                     method: 'post',
                                     body: `{"roomcode":["${room}"]}`
                                 }
-                                fetch(`https://opendata.tamk.fi/r1/computerstatus/search?apiKey=${apiKey}`, init).then((response) => {return response.json()}).then(handleComputers)
+                                fetch(`https://opendata.tamk.fi/r1/computerstatus/search?apiKey=${apiKey}`, init).then((response) => {return response.json()}).then(handleComputers);
 
                                 function handleComputers (jsonObject) {
                                     var liToAppend2 = document.getElementById(room),
-                                        ulNewList2  = document.createElement("ul")
+                                        ulNewList2  = document.createElement("ul");
 
                                     if(Object.keys(jsonObject.computer).length > 0) {
-                                        ulNewList2.className = "subHeading"
-                                        ulNewList2.innerHTML="Computer"
+                                        ulNewList2.className = "subHeading";
+                                        ulNewList2.innerHTML="Computer";
                                     }
                                     for(let index in jsonObject.computer){
                                         var liNewListItem2 = document.createElement("li"),
                                             a              = document.createElement("a");
 
                                         a.setAttribute('href',"#");
-                                        a.className="Computer"
+                                        a.className="Computer";
                                         a.innerHTML = jsonObject.computer[index].computerName + " " + jsonObject.computer[index].status;
                                         if (jsonObject.computer[index].status=="inuse") {
                                             a.style.color='red';
                                         }
                                         liNewListItem2.appendChild(a);
-                                        ulNewList2.appendChild(liNewListItem2)    
+                                        ulNewList2.appendChild(liNewListItem2);    
                                     }
                                     liToAppend2.appendChild(ulNewList2);
                                 }
@@ -167,8 +165,9 @@
 
                     function toggleReservations (e) {
                         if(e.target.className == "Computer") {
-                            var orig = e.target.innerHTML
-                            var cmp = orig.split(' ')
+                            var orig = e.target.innerHTML,
+                                cmp = orig.split(' ');
+
                             if (cmp.includes("free")){
                                 e.target.innerHTML=cmp[0] + " inuse";
                                 e.target.style.color='red';
@@ -177,10 +176,9 @@
                                 e.target.style.color='rgba(231, 241, 241, 0.97)';
                             }
                         }
-
                     }
                 }
-                window.addEventListener('load', main)
+                window.addEventListener('load', main);
             }())
         </script>
     </head>
@@ -193,13 +191,10 @@
             <ul id="ulBuilding">
             </ul>
         </li>
-        <li><a href="#">Some other still missing cool stuff</a></li>
         <li><a href="#">About</a>
-            <ul id="ulBuilding">
-              <li><a href="#">This application has been made only to test Open Data from TAMK.<br/>Computer reservations are not made for real.<br/>So, don't worry!</a>
-                
+            <ul id="about">
+              <li><a href="#">This application has been made only to test Open Data from TAMK.<br/>Computer reservations are not made for real. So, don't worry!</a>
               </li>
-              
             </ul>
           </li>
         </ul>

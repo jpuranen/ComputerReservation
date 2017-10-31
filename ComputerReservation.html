@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html>
+    <head><title>TAMK Computer reservation</title>
+        <style>
+            @import url(https://fonts.googleapis.com/css?family=Open+Sans);
+            @import url(https://fonts.googleapis.com/css?family=Bree+Serif);
+            ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                background: #1bc2a2;
+                color: #fff;
+            }
+            ul li {
+                display: block;
+                position: relative;
+                float: left;
+                background: #1bc2a2;
+                font-family: 'Open Sans', sans-serif;
+            }
+            li ul { 
+                display: none; 
+            }
+            ul li a {
+                display: block;
+                padding: 1em;
+                text-decoration: none;
+                white-space: nowrap;
+                color: rgba(231, 241, 241, 0.97);
+                font-family: 'Bree Serif', 'serif';
+            }
+            body > ul > li > a {
+                font-weight: 700;
+                color: rgba(211, 211, 211, 0.97);
+            }
+            ul li a:hover {
+                background: #2c3e50;
+                font-weight: bold;
+            }
+            li:hover > ul {
+                display: block;
+                position: absolute;
+            }
+            li:hover li {
+                float: none; 
+            }
+            li:hover a {
+                background: #1bc2a2;
+            }
+            li:hover li a:hover {
+                background: #2c3e50;
+            }
+            .header { 
+                height: 0.5em;
+            }
+            .main-navigation li ul li {
+                border-top: 0;
+            }
+            ul ul ul {
+                left: 100%;
+                top: 0;
+            }
+            ul:before,
+            ul:after {
+                content: " "; 
+                display: table;
+            }
+            ul:after {
+                clear: both;
+            }
+            .subHeading {
+                font-family: 'Bree Serif', 'serif';
+            }
+
+        </style>
+        <script>
+            (function() {
+
+                var apiKey="YOURAPIKEYCOMESHERE"; 
+                
+                function main(event) {        
+        
+                    fetch(`https://opendata.tamk.fi/r1/reservation/building?apiKey=${apiKey}`).then((response) => {return response.json()}).then(getBuildings)
+
+                        function getBuildings (jsonObject) {
+                            let buildingRegex = /^[A-ZÄÖÅ][\-]+/
+                            
+                            for(let item in jsonObject.resources) {
+                                if(buildingRegex.test(jsonObject.resources[item].code)) {
+                                    var x        =  document.getElementById("ulBuilding"), 
+                                        option   =  document.createElement("li"),
+                                        a        =  document.createElement("a"),
+                                        building =  jsonObject.resources[item].id;
+
+                                    option.id =jsonObject.resources[item].id
+                                    a.setAttribute('href',"#");
+                                    a.innerHTML = jsonObject.resources[item].name;
+                                    option.appendChild(a);
+                                    x.appendChild(option);
+                                    
+                                    getRooms(building);
+                                }
+                            }
+                        }
+
+                        function getRooms(building) {
+
+                            fetch(`https://opendata.tamk.fi/r1/reservation/building/${building}?apiKey=${apiKey}`).then((response) => {return response.json()}).then(handleRooms)
+
+                            function handleRooms (jsonObject) {
+                                var liToAppend = document.getElementById(building),
+                                    ulNewList  = document.createElement("ul")
+                                
+                                ulNewList.className = "subHeading"
+                                ulNewList.innerHTML="Room"
+                        
+                                for(let index in jsonObject.resources){
+                                    var liNewListItem = document.createElement("li"),
+                                        a             = document.createElement("a");
+
+                                    liNewListItem.id=jsonObject.resources[index].code
+                                    a.setAttribute('href',"#");
+                                    a.innerHTML = jsonObject.resources[index].code;
+                                    liNewListItem.appendChild(a);
+                                    ulNewList.appendChild(liNewListItem)
+                                    getFreeComputers(jsonObject.resources[index].code)    
+                                }
+                                liToAppend.appendChild(ulNewList);
+                                
+                            }
+
+                            function getFreeComputers(room) {
+                                var init = {
+                                    method: 'post',
+                                    body: `{"roomcode":["${room}"]}`
+                                }
+                                fetch(`https://opendata.tamk.fi/r1/computerstatus/search?apiKey=${apiKey}`, init).then((response) => {return response.json()}).then(handleComputers)
+
+                                function handleComputers (jsonObject) {
+                                    var liToAppend2 = document.getElementById(room),
+                                        ulNewList2  = document.createElement("ul")
+
+                                    if(Object.keys(jsonObject.computer).length > 0) {
+                                        ulNewList2.className = "subHeading"
+                                        ulNewList2.innerHTML="Computer"
+                                    }
+                                    for(let index in jsonObject.computer){
+                                        var liNewListItem2 = document.createElement("li"),
+                                            a              = document.createElement("a");
+
+                                        a.setAttribute('href',"#");
+                                        a.className="Computer"
+                                        a.innerHTML = jsonObject.computer[index].computerName + " " + jsonObject.computer[index].status;
+                                        if (jsonObject.computer[index].status=="inuse") {
+                                            a.style.color='red';
+                                        }
+                                        liNewListItem2.appendChild(a);
+                                        ulNewList2.appendChild(liNewListItem2)    
+                                    }
+                                    liToAppend2.appendChild(ulNewList2);
+                                }
+                            }
+                        }
+                    let myBuilding = document.querySelector('#ulBuilding');
+                    myBuilding.addEventListener('click', toggleReservations);
+
+                    function toggleReservations (e) {
+                        if(e.target.className == "Computer") {
+                            var orig = e.target.innerHTML
+                            var cmp = orig.split(' ')
+                            if (cmp.includes("free")){
+                                e.target.innerHTML=cmp[0] + " inuse";
+                                e.target.style.color='red';
+                            } else if (cmp.includes("inuse")) {
+                                e.target.innerHTML=cmp[0] + " free";
+                                e.target.style.color='rgba(231, 241, 241, 0.97)';
+                            }
+                        }
+
+                    }
+                }
+                window.addEventListener('load', main)
+            }())
+        </script>
+    </head>
+    <body>
+        <div id="content"></div>
+        <div class="header"></div>
+        <ul class="main-navigation">
+        <li><a href="http://www.tamk.fi/web/tamk/etusivu">Home</a></li>
+        <li><a href="#">Select Computer by Building and by Room</a>
+            <ul id="ulBuilding">
+            </ul>
+        </li>
+        <li><a href="#">Some other still missing cool stuff</a></li>
+        <li><a href="#">About</a>
+            <ul id="ulBuilding">
+              <li><a href="#">This application has been made only to test Open Data from TAMK.<br/>Computer reservations are not made for real.<br/>So, don't worry!</a>
+                
+              </li>
+              
+            </ul>
+          </li>
+        </ul>
+    </body>
+</html>
